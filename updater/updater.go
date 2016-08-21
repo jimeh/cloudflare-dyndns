@@ -38,25 +38,51 @@ type Updater struct {
 	Interval   int
 }
 
-// Update performs a the full update sequence.
-func (u *Updater) Update(host string) error {
+// UpdateLoop performs a the full update sequence.
+func (u *Updater) UpdateLoop(host string) (<-chan bool, error) {
+	stop := make(chan bool, 1)
+
 	fmt.Printf("Looking up record for %s...\n", host)
+	record, err := u.RecordByHost(host)
+	if err != nil {
+		return stop, err
+	}
+
+	fmt.Printf("Found %s (Zone: %s)\n", record.Name, record.ZoneName)
+	go func() {
+		fmt.Printf("Starting IP check (repeats every %d seconds)\n", u.Interval)
+
+		_, err = u.UpdateRecord(record)
+		if err != nil {
+			fmt.Printf("ERROR: %s\n", err.Error())
+		}
+
+		for {
+			select {
+			case <-stop:
+				close(stop)
+				return
+			case <-time.After(time.Second * time.Duration(u.Interval)):
+				_, err = u.UpdateRecord(record)
+				if err != nil {
+					fmt.Printf("ERROR: %s\n", err.Error())
+				}
+			}
+		}
+	}()
+
+	return stop, nil
+}
+
+// Update performs a single update
+func (u *Updater) Update(host string) error {
 	record, err := u.RecordByHost(host)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Found %s (%s)\n", record.Name, record.ID)
 
-	fmt.Printf("Starting IP check (repeats every %d seconds)\n", u.Interval)
-	for {
-		record, err = u.UpdateRecord(record)
-		if err != nil {
-			fmt.Printf("ERROR: %s\n", err.Error())
-			fmt.Printf("Retrying in %d seconds...", u.Interval)
-		}
-
-		time.Sleep(time.Duration(u.Interval) * time.Second)
-	}
+	_, err = u.UpdateRecord(record)
+	return err
 }
 
 // UpdateRecord updates a cloudflare.DNSRecord.
