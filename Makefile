@@ -12,6 +12,9 @@ install: dev-deps
 build:
 	mkdir -p bin && go build -o $(BIN_PATH)
 
+package:
+	./package.sh
+
 run: build
 	$(BIN_PATH)
 
@@ -27,5 +30,5 @@ dev-deps:
 update-dev-deps:
 	@$(foreach DEP,$(DEV_DEPS),go get -u $(DEP);)
 
-.PHONY: test install build run fetch-vendor install-vendor dev-deps \
+.PHONY: test install build package run fetch-vendor install-vendor dev-deps \
 	update-dev-deps
