@@ -9,10 +9,10 @@
 			"revisionTime": "2016-08-02T13:28:18Z"
 		},
 		{
-			"checksumSHA1": "QoVjlQFru1ixgV8vh63T4/JAtLI=",
+			"checksumSHA1": "Hky3u+8Rqum+wB5BHMj0A8ZmT4g=",
 			"path": "github.com/pkg/errors",
-			"revision": "a22138067af1c4942683050411a841ade67fe1eb",
-			"revisionTime": "2016-08-08T05:55:40Z"
+			"revision": "17b591df37844cde689f4d5813e5cea0927d8dd2",
+			"revisionTime": "2016-08-22T09:00:10Z"
 		}
 	],
 	"rootPath": "github.com/jimeh/cloudflare-dyndns"
