@@ -1,34 +1,54 @@
 DEV_DEPS = github.com/kardianos/govendor \
-github.com/vektra/mockery/.../ \
+github.com/vektra/mockery/.../
 
-BIN_PATH = ./bin/cloudflare-dyndns
+BINARY = bin/cloudflare-dyndns
+BINDIR = $(shell dirname ${BINARY})
+SOURCES = $(shell find . -name '*.go')
 
-test: dev-deps
-	@govendor test +local +program
+.DEFAULT_GOAL: $(BINARY)
+$(BINARY): $(SOURCES)
+	go build -o ${BINARY}
 
+.PHONY: build
+build: $(BINARY)
+
+.PHONY: clean
+clean:
+	if [ -f ${BINARY} ]; then rm ${BINARY}; fi; \
+	if [ -d ${BINDIR} ]; then rmdir ${BINDIR}; fi
+
+.PHONY: run
+run: $(BINARY)
+	$(BINARY)
+
+.PHONY: install
 install: dev-deps
 	@govendor install +local +program
 
-build:
-	mkdir -p bin && go build -o $(BIN_PATH)
+.PHONY: test
+test: dev-deps
+	@govendor test +local +program
 
-package:
-	./package.sh
+.PHONY: vendor-sync
+vendor-sync: dev-deps
+	@govendor sync
 
-run: build
-	$(BIN_PATH)
-
-fetch-vendor: dev-deps
+.PHONY: vendor-fetch
+vendor-fetch: dev-deps
 	@govendor fetch +external +missing
 
-install-vendor: dev-deps
+.PHONY: vendor-install
+vendor-install: dev-deps
 	@govendor install +vendor
 
+.PHONY: dev-deps
 dev-deps:
 	@$(foreach DEP,$(DEV_DEPS),go get $(DEP);)
 
+.PHONY: update-dev-deps
 update-dev-deps:
 	@$(foreach DEP,$(DEV_DEPS),go get -u $(DEP);)
 
-.PHONY: test install build package run fetch-vendor install-vendor dev-deps \
-	update-dev-deps
+.PHONY: package
+package:
+	./package.sh
